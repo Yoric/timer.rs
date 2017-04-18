@@ -178,7 +178,7 @@ impl <T,E> Scheduler<T,E> where E : Executor<T> {
                     if sched.date > now {
                         // First item is not ready yet, so we need to
                         // wait until it is or something happens.
-                        sleep = Sleep::AtMost(sched.date - now);
+                        sleep = Sleep::AtMost(sched.date.signed_duration_since(now));
                         break;
                     }
                 } else {
@@ -753,7 +753,7 @@ mod tests {
 
         delays.sort();
         for (i, msg) in (0..delays.len()).zip(rx.iter()) {
-            let elapsed = (UTC::now() - start).num_seconds();
+            let elapsed = UTC::now().signed_duration_since(start).num_seconds();
             println!("Received message {} after {} seconds", msg, elapsed);
             assert_eq!(msg, delays[i]);
             assert!(delays[i] <= elapsed && elapsed <= delays[i] + 3, "We have waited {} seconds, expecting [{}, {}]", elapsed, delays[i], delays[i] + 3);
@@ -772,7 +772,7 @@ mod tests {
         }
 
         assert_eq!(rx.recv().unwrap(), 0);
-        assert!(UTC::now() - start <= Duration::seconds(1));
+        assert!(UTC::now().signed_duration_since(start) <= Duration::seconds(1));
     }
 
     #[test]
@@ -790,7 +790,7 @@ mod tests {
         for delay in delays {
             assert_eq!(rx.recv().unwrap(), delay);
         }
-        assert!(UTC::now() - start <= Duration::seconds(1));
+        assert!(UTC::now().signed_duration_since(start) <= Duration::seconds(1));
     }
 
     #[test]
