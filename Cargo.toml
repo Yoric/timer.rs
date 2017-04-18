@@ -1,6 +1,6 @@
 [package]
 name = "timer"
-version = "0.1.4"
+version = "0.2.0"
 authors = ["David Rajchenbach-Teller <yoric@rajtel.name>"]
 description = "A simple timer. Use it to schedule execution of closures after a delay or at a given timestamp."
 documentation = "http://yoric.github.io/timer.rs/doc/timer/"
@@ -11,5 +11,5 @@ license = "MPL-2.0"
 
 
 [dependencies]
-chrono = "^0.2"
+chrono = "^0.3"
 
