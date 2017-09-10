@@ -8,8 +8,3 @@ homepage = "https://github.com/Yoric/timer.rs"
 readme = "README.md"
 keywords = ["timer", "alarm", "schedule", "chrono", "chronometer"]
 license = "MPL-2.0"
-
-
-[dependencies]
-chrono = "^0.4"
-
