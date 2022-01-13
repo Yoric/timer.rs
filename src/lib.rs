@@ -100,11 +100,11 @@ trait Executor<T> {
 struct CallbackExecutor;
 
 impl Executor<Box<dyn FnMut() + Send>> for CallbackExecutor {
-    fn execute(&mut self, mut data: Box<FnMut() + Send>) {
+    fn execute(&mut self, mut data: Box<dyn FnMut() + Send>) {
         data();
     }
 
-    fn execute_clone(&mut self, mut data: Box<FnMut() + Send>) -> Box<FnMut() + Send> {
+    fn execute_clone(&mut self, mut data: Box<dyn FnMut() + Send>) -> Box<dyn FnMut() + Send> {
         data();
         data
     }
@@ -351,7 +351,7 @@ where
 /// _Scheduler_ thread (which requires acquiring a possibly-long-held
 /// Mutex) without blocking the caller thread.
 pub struct Timer {
-    base: TimerBase<Box<FnMut() + Send>>,
+    base: TimerBase<Box<dyn FnMut() + Send>>,
 }
 
 impl Timer {
