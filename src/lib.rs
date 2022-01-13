@@ -148,8 +148,8 @@ where
 {
     fn with_capacity(waiter: Arc<WaiterChannel<T>>, executor: E, capacity: usize) -> Self {
         Scheduler {
-            waiter: waiter,
-            executor: executor,
+            waiter,
+            executor,
             heap: BinaryHeap::with_capacity(capacity),
         }
     }
@@ -161,7 +161,7 @@ where
             AtMost(Duration),
         }
 
-        let ref waiter = *self.waiter;
+        let waiter = &*self.waiter;
         loop {
             let mut sleep = if let Some(sched) = self.heap.peek() {
                 let now = SystemTime::now();
@@ -186,7 +186,7 @@ where
                             // enqueue the next call.
                             self.heap.push(Schedule {
                                 date: sched.date + delta,
-                                data: data,
+                                data,
                                 guard: sched.guard,
                                 repeat: Some(delta),
                             });
@@ -226,10 +226,10 @@ where
 
             match sleep {
                 Sleep::UntilAwakened => {
-                    let _ = waiter.condvar.wait(lock);
+                    let _lock = waiter.condvar.wait(lock);
                 }
                 Sleep::AtMost(delay) => {
-                    let _ = waiter.condvar.wait_timeout(lock, delay);
+                    let _lock = waiter.condvar.wait_timeout(lock, delay);
                 }
                 Sleep::NotAtAll => {}
             }
@@ -287,7 +287,7 @@ where
         let (tx, rx) = channel();
         thread::spawn(move || {
             use Op::*;
-            let ref waiter = *waiter_send;
+            let waiter = &*waiter_send;
             for msg in rx.iter() {
                 let mut vec = waiter.messages.lock().unwrap();
                 match msg {
@@ -313,7 +313,7 @@ where
                 scheduler.run()
             })
             .unwrap();
-        TimerBase { tx: tx }
+        TimerBase { tx }
     }
 
     pub fn schedule_with_delay(&self, delay: Duration, data: T) -> Guard {
@@ -333,9 +333,9 @@ where
         self.tx
             .send(Op::Schedule(Schedule {
                 date,
-                data: data,
+                data,
                 guard: guard.clone(),
-                repeat: repeat,
+                repeat,
             }))
             .unwrap();
         guard
@@ -551,6 +551,12 @@ impl Timer {
     }
 }
 
+impl Default for Timer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// A timer, used to schedule delivery of messages at a later date.
 ///
 /// In the current implementation, each timer is executed as two
@@ -584,14 +590,14 @@ where
     /// spend most of their life waiting for instructions.
     pub fn new(tx: Sender<T>) -> Self {
         MessageTimer {
-            base: TimerBase::new(DeliveryExecutor { tx: tx }),
+            base: TimerBase::new(DeliveryExecutor { tx }),
         }
     }
 
     /// As `new()`, but with a manually specified initial capaicty.
     pub fn with_capacity(tx: Sender<T>, capacity: usize) -> Self {
         MessageTimer {
-            base: TimerBase::with_capacity(DeliveryExecutor { tx: tx }, capacity),
+            base: TimerBase::with_capacity(DeliveryExecutor { tx }, capacity),
         }
     }
 
