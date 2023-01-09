@@ -404,7 +404,7 @@ impl Timer {
     ///
     /// # Failures
     ///
-    /// Any failure in `cb` will scheduler thread and progressively
+    /// Any failure in `cb` will affect the scheduler thread and progressively
     /// contaminate the Timer and the calling thread itself. You have
     /// been warned.
     ///
