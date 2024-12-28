@@ -737,6 +737,7 @@ where
 /// A value scoping a schedule. When this value is dropped, the
 /// schedule is cancelled.
 #[derive(Clone)]
+#[must_use = "if unused the execution will immediately be cancelled"]
 pub struct Guard {
     should_execute: Arc<AtomicBool>,
     ignore_drop: bool,
